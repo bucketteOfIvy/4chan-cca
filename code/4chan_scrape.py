@@ -1,18 +1,18 @@
-from pandas import DataFrame 
-from pandas import concat
+from pandas import DataFrame, concat 
 from bs4 import BeautifulSoup as bs
 from requests_html import HTMLSession
 from datetime import datetime
 from pathlib import Path
+import pandas as pd
 import re
 
 
 BOARD = '/lgbt/'
+SAVE_LOC = '../data/4chan_posts.csv'
 
+# TODO: test to see if this is *actually* only keeping unique posts (because,
+# *jesus*)
 # TODO: test to see if this works on other boards
-# TODO: create version that updates running lists of posts, allowing 
-#       it to be called more frequently (and hence being RCC-able)
-
 
 def get_thread_subject(soup):
     '''
@@ -154,10 +154,31 @@ def get_all_current_posts():
     return df
 
 if __name__ == "__main__":
-    df = get_all_current_posts()
-
-    print("Saving...")
-    dt = datetime.now()
-    df.to_csv(f'../data/{dt.day}{dt.month}{dt.hour}{dt.minute}.csv', index=False)
-    print('Saved!')
     
+    df = get_all_current_posts()
+    
+    ## Old save
+    # print("Saving...")
+    # dt = datetime.now()
+    # df.to_csv(f'../data/{dt.day}{dt.month}{dt.hour}{dt.minute}.csv', index=False)
+    # print('Saved!')
+    
+    ## New Save
+
+    print('Reading old data...')
+    
+    try:
+        old_df = pd.read_csv('../data/4chan_posts.csv')
+    except FileNotFoundError:
+        print(f"No old file found. Saving to {SAVE_LOC}")
+        df.to_csv(SAVE_LOC, index=False)
+        print('Saved!')
+        exit()        
+
+    print(f'Pulled {len(df)} posts, merging into dataframe of {len(old_df)} posts...')
+    df = concat([old_df, df], ignore_index=True).drop_duplicates(subset=['id'])
+    print(f'Resultant dataframe has {len(df)} posts')
+
+    print('Saving..')
+    df.to_csv(SAVE_LOC)
+        
