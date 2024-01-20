@@ -6,8 +6,6 @@ import pandas as pd
 import spacy
 import re
 
-BOARD = '/lgbt/'
-SAVE_LOC = '../data/4chan_tokenized.csv'
 URL_REGEX = r'[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
 POST_REF_REGEX = r'>>[\d]*'
 
@@ -176,7 +174,7 @@ def get_posts_from_page(url):
     
     return df
 
-def get_all_current_posts():
+def get_all_current_posts(board):
     '''
     Get all posts currently on 4chan's /lgbt/. This heavily abuses the fact
     that 4chan has 10 pages worth of posts at any time.
@@ -184,7 +182,7 @@ def get_all_current_posts():
     Returns: DataFrame of 4chan posts sorted by thread subject, with post id, 
       post contents, poster, and post time. 
     '''
-    reqs = [HTMLSession().get(f'https://boards.4chan.org/{BOARD}/{i}')\
+    reqs = [HTMLSession().get(f'https://boards.4chan.org/{board}/{i}')\
             for i in range(1, 11)]
     print("Made reqs!")
     
@@ -198,7 +196,7 @@ def get_all_current_posts():
     threads = []
     for soup in soups:
         rel_threads = get_threads(soup)
-        threads.extend([f'https://boards.4chan.org/{BOARD}/' + thread\
+        threads.extend([f'https://boards.4chan.org/{board}/' + thread\
                         for thread in rel_threads]) 
     print(f'Got threads! {len(threads)} in total, {len(list(set(threads)))} unique!')
 
@@ -214,7 +212,11 @@ def get_all_current_posts():
 
 if __name__ == "__main__":
     
-    df = get_all_current_posts()
+    with open('constants.txt', 'r') as f:
+        board = f.readline().strip()
+        save_path = f.readline().strip()
+
+    df = get_all_current_posts(board)
     
     ## Old save
     # print("Saving...")
@@ -227,10 +229,10 @@ if __name__ == "__main__":
     print('Reading old data...')
     
     try:
-        old_df = pd.read_csv(SAVE_LOC)
+        old_df = pd.read_csv(save_path)
     except FileNotFoundError:
-        print(f"No old file found. Saving to {SAVE_LOC}")
-        df.to_csv(SAVE_LOC, index=False)
+        print(f"No old file found. Saving to {save_path}")
+        df.to_csv(save_path, index=False)
         print('Saved!')
         exit()        
 
@@ -239,4 +241,4 @@ if __name__ == "__main__":
     print(f'Resultant dataframe has {len(df)} posts')
 
     print('Saving..')
-    df.to_csv(SAVE_LOC)
+    df.to_csv(save_path)

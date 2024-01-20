@@ -1,0 +1,2 @@
+/lgbt/
+../data/lgbt_tokenized.csv
