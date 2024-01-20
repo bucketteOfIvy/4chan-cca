@@ -1,18 +1,61 @@
 from pandas import DataFrame, concat 
 from bs4 import BeautifulSoup as bs
 from requests_html import HTMLSession
-from datetime import datetime
-from pathlib import Path
+# from datetime import datetime
 import pandas as pd
+import spacy
 import re
 
-
 BOARD = '/lgbt/'
-SAVE_LOC = '../data/4chan_posts.csv'
+SAVE_LOC = '../data/4chan_tokenized.csv'
+URL_REGEX = r'[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
+POST_REF_REGEX = r'>>[\d]*'
 
-# TODO: test to see if this is *actually* only keeping unique posts (because,
-# *jesus*)
+nlp = spacy.load('en_core_web_sm')
+
+# TODO: test to see if this is *actually* only keeping unique posts (because, *jesus*)
 # TODO: test to see if this works on other boards
+
+def get_urls(content):
+    '''
+    Retrieve all URLS in a post.
+    '''
+    return re.findall(URL_REGEX, content)
+
+def get_references(content):
+    '''
+    Retrieve all post ids referenced by this post.
+    '''
+    return re.findall(POST_REF_REGEX, content)
+
+def remove_links(content):
+    '''
+    Cleans content, deleting all URLs and links.
+    
+    Inputs: (str) content
+
+    Returns: (str) content without links 
+    '''
+    # stolen from https://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
+
+    rv = re.sub(URL_REGEX, ' ', content)
+    rv = re.sub(POST_REF_REGEX, '\n', content)
+    
+    return rv
+
+
+def tokenize_post(content):
+    '''
+    Tokenizes the content of a clean post using spaCy
+    '''
+    doc = nlp(content, disable=["parser", "tagger", "ner", "lemmatizer"])
+
+    tokenized = []
+    for token in doc:
+        if not token.is_punct and len(token.text.strip()) > 0:
+            tokenized.append(token)
+    
+    return tokenized
 
 def get_thread_subject(soup):
     '''
@@ -37,7 +80,6 @@ def get_thread_subject(soup):
     
     return subject.get_text()
 
-
 def scrape_thread(url):
     '''
     Function which scrapes all posts from a given 4chan thread and 
@@ -61,20 +103,37 @@ def scrape_thread(url):
     subject = get_thread_subject(soup)
         
     post_content, post_time, post_id, posters = [], [], [], []
+    clean_contents, tokens, refs, links = [], [], [], []
     for post in posts:
         poster = post.find('span', class_='name').get_text()
         time = post.find('span', class_='dateTime').get_text()
         num = post.find('a', title='Reply to this post').get_text()
         content = post.find('blockquote', class_='postMessage').get_text()
 
+        references = get_references(content)
+        links_to = get_urls(content)
+
+        clean_content = remove_links(content)
+        tokenized = tokenize_post(clean_content)
+
         post_content.append(content)
         post_time.append(time)
         post_id.append(num)
         posters.append(poster)
-    
+        clean_contents.append(clean_content)
+        tokens.append(tokenized)
+        refs.append(references)
+        links.append(links_to)
+
     return DataFrame({'subject':[subject for i, _ in enumerate(post_content)],\
-                      'content':post_content, 'time':post_time,\
-                      'id':post_id, 'author':posters})
+                      'id':post_id, \
+                        'author':posters, \
+                          'time':post_time,\
+                      'content':post_content, \
+                        'clean_content':clean_contents,
+                      'tokens':tokens, \
+                        'refs':refs,\
+                          'urls':links})
 
 def get_threads(soup):
     '''
@@ -168,7 +227,7 @@ if __name__ == "__main__":
     print('Reading old data...')
     
     try:
-        old_df = pd.read_csv('../data/4chan_posts.csv')
+        old_df = pd.read_csv(SAVE_LOC)
     except FileNotFoundError:
         print(f"No old file found. Saving to {SAVE_LOC}")
         df.to_csv(SAVE_LOC, index=False)
@@ -181,4 +240,3 @@ if __name__ == "__main__":
 
     print('Saving..')
     df.to_csv(SAVE_LOC)
-        
