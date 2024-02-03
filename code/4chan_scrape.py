@@ -11,7 +11,6 @@ POST_REF_REGEX = r'>>[\d]*'
 
 nlp = spacy.load('en_core_web_sm')
 
-# TODO: test to see if this is *actually* only keeping unique posts (because, *jesus*)
 # TODO: test to see if this works on other boards
 
 def get_urls(content):
@@ -40,20 +39,6 @@ def remove_links(content):
     rv = re.sub(POST_REF_REGEX, '\n', content)
     
     return rv
-
-
-def tokenize_post(content):
-    '''
-    Tokenizes the content of a clean post using spaCy
-    '''
-    doc = nlp(content, disable=["parser", "tagger", "ner", "lemmatizer"])
-
-    tokenized = []
-    for token in doc:
-        if not token.is_punct and len(token.text.strip()) > 0:
-            tokenized.append(token)
-    
-    return tokenized
 
 def get_thread_subject(soup):
     '''
@@ -86,11 +71,20 @@ def scrape_thread(url):
     Inputs:
       url (str): url of the thread
     
-    Returns: DataFrame containing post content, post time, post id, and poster.
+    Returns: DataFrame containing 
+                subject: subject heading for the post, or ID of lead post
+                id: id for the post itself
+                author: username, if available, anonymous otherwise
+                date: the date the post was made, MM/DD/YYYY
+                time: time, in HH:MM:SS
+                content: raw content of the post
+                clean_content: content of the post without URLS, refs
+                refs: other posts referenced by this one
+                urls: other websites referenced by this post
     '''
     session = HTMLSession()
 
-    # extract content and render
+    #### Extract content and render
     req = session.get(url)
     req.html.render()
     soup = bs(req.text, 'html.parser')
@@ -99,12 +93,13 @@ def scrape_thread(url):
              soup.find_all('div', class_='post')]
     
     subject = get_thread_subject(soup)
-        
-    post_content, post_time, post_id, posters = [], [], [], []
-    clean_contents, tokens, refs, links = [], [], [], []
+
+    ### Sort content from posts        
+    post_content, date, time, post_id, posters = [], [], [], [], []
+    clean_contents, refs, links = [], [], []
     for post in posts:
         poster = post.find('span', class_='name').get_text()
-        time = post.find('span', class_='dateTime').get_text()
+        time_dirty = post.find('span', class_='dateTime').get_text()
         num = post.find('a', title='Reply to this post').get_text()
         content = post.find('blockquote', class_='postMessage').get_text()
 
@@ -112,24 +107,23 @@ def scrape_thread(url):
         links_to = get_urls(content)
 
         clean_content = remove_links(content)
-        tokenized = tokenize_post(clean_content)
 
         post_content.append(content)
-        post_time.append(time)
+        date.append(re.search(r'[0-9]{2}/[0-9]{2}/[0-9]{2}', time_dirty)[0])
+        time.append(re.search(r'[0-9]{2}:[0-9]{2}:[0-9]{2}', time_dirty)[0])
         post_id.append(num)
         posters.append(poster)
         clean_contents.append(clean_content)
-        tokens.append(tokenized)
         refs.append(references)
         links.append(links_to)
 
     return DataFrame({'subject':[subject for i, _ in enumerate(post_content)],\
                       'id':post_id, \
                         'author':posters, \
-                          'time':post_time,\
+                          'date':date,\
+                          'time':time,\
                       'content':post_content, \
-                        'clean_content':clean_contents,
-                      'tokens':tokens, \
+                        'clean_content':clean_contents,\
                         'refs':refs,\
                           'urls':links})
 
@@ -200,7 +194,7 @@ def get_all_current_posts(board):
                         for thread in rel_threads]) 
     print(f'Got threads! {len(threads)} in total, {len(list(set(threads)))} unique!')
 
-    print(f'Scraping thread number 1...')
+    print(f'Scraping thread number 0...')
     df = scrape_thread(threads.pop())
 
     for i, thread in enumerate(threads):
@@ -217,13 +211,7 @@ if __name__ == "__main__":
         save_path = f.readline().strip()
 
     df = get_all_current_posts(board)
-    
-    ## Old save
-    # print("Saving...")
-    # dt = datetime.now()
-    # df.to_csv(f'../data/{dt.day}{dt.month}{dt.hour}{dt.minute}.csv', index=False)
-    # print('Saved!')
-    
+        
     ## New Save
 
     print('Reading old data...')
@@ -237,8 +225,12 @@ if __name__ == "__main__":
         exit()        
 
     print(f'Pulled {len(df)} posts, merging into dataframe of {len(old_df)} posts...')
-    df = concat([old_df, df], ignore_index=True).drop_duplicates(subset=['id'])
+    
+    df = concat([old_df, df], ignore_index=True)
+    df['id'] = df['id'].astype(str)
+    df.drop_duplicates(subset=['id'], inplace=True)
+    
     print(f'Resultant dataframe has {len(df)} posts')
-
+    print(f'It also has {df["subject"].nunique()} unique threads')
     print('Saving..')
-    df.to_csv(save_path)
+    df.to_csv(save_path, index=False)

@@ -1,2 +1,2 @@
 /lgbt/
-../data/lgbt_tokenized.csv
+../data/lgbt_tokenized_02_02_24.csv
