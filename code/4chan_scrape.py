@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup as bs
 from requests_html import HTMLSession
 # from datetime import datetime
 import pandas as pd
+import logging
 import spacy
 import re
 
@@ -159,7 +160,7 @@ def get_posts_from_page(url):
     soup = bs(req.text, 'html.parser')
 
     threads = [url + thread for thread in get_threads(soup)]
-    print('Got threads!\n', threads)
+    logging.info('Got threads!\n', threads)
 
     df = scrape_thread(threads.pop())
     
@@ -178,34 +179,37 @@ def get_all_current_posts(board):
     '''
     reqs = [HTMLSession().get(f'https://boards.4chan.org/{board}/{i}')\
             for i in range(1, 11)]
-    print("Made reqs!")
+    logging.info("Made reqs!")
     
     soups = []
     for req in reqs:
         # might be necessary to make a copy 
         req.html.render()
         soups.append(bs(req.text, 'html.parser'))
-    print('Made soups!')
+    logging.info('Made soups!')
     
     threads = []
     for soup in soups:
         rel_threads = get_threads(soup)
         threads.extend([f'https://boards.4chan.org/{board}/' + thread\
                         for thread in rel_threads]) 
-    print(f'Got threads! {len(threads)} in total, {len(list(set(threads)))} unique!')
+    logging.info(f'Got threads! {len(threads)} in total, {len(list(set(threads)))} unique!')
 
-    print(f'Scraping thread number 0...')
+    logging.info(f'Scraping thread number 0...')
     df = scrape_thread(threads.pop())
 
     for i, thread in enumerate(threads):
-        print(f'Scraping thread number {i+1}...')
+        logging.info(f'Scraping thread number {i+1}...')
         df = concat([df, scrape_thread(thread)], ignore_index=True)
     
-    print('Returning a dataframe!')
+    logging.info('Returning a dataframe!')
     return df
 
 if __name__ == "__main__":
-    
+
+    logging.basicConfig(level=logging.INFO, filename='logs.txt',
+                            format='%(asctime)-15s %(levelname)-8s %(message)s')
+
     with open('constants.txt', 'r') as f:
         board = f.readline().strip()
         save_path = f.readline().strip()
@@ -219,18 +223,20 @@ if __name__ == "__main__":
     try:
         old_df = pd.read_csv(save_path)
     except FileNotFoundError:
-        print(f"No old file found. Saving to {save_path}")
+        logging.info(f"No old file found. Saving to {save_path}")
         df.to_csv(save_path, index=False)
-        print('Saved!')
+        logging.info('Saved!')
         exit()        
 
-    print(f'Pulled {len(df)} posts, merging into dataframe of {len(old_df)} posts...')
+    logging.info(f'Pulled {len(df)} posts, merging into dataframe of {len(old_df)} posts...')
     
     df = concat([old_df, df], ignore_index=True)
     df['id'] = df['id'].astype(str)
     df.drop_duplicates(subset=['id'], inplace=True)
     
-    print(f'Resultant dataframe has {len(df)} posts')
-    print(f'It also has {df["subject"].nunique()} unique threads')
+    logging.info(f'Resultant dataframe has {len(df)} posts')
+    logging.info(f'It also has {df["subject"].nunique()} unique threads')
     print('Saving..')
     df.to_csv(save_path, index=False)
+
+    logging.info('=' * 40)
