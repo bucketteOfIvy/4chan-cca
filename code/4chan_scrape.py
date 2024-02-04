@@ -8,7 +8,7 @@ import spacy
 import re
 
 URL_REGEX = r'[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
-POST_REF_REGEX = r'>>[\d]{8}*'
+POST_REF_REGEX = r'>>[\d]{8}'
 
 nlp = spacy.load('en_core_web_sm')
 
