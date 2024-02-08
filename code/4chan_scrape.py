@@ -200,6 +200,8 @@ def get_all_current_posts(board):
 
     for i, thread in enumerate(threads):
         logging.info(f'Scraping thread number {i+1}...')
+        ## Adding this to test something weird
+        print(f'Scraping thread numbe {i+1}...')
         df = concat([df, scrape_thread(thread)], ignore_index=True)
     
     logging.info('Returning a dataframe!')
