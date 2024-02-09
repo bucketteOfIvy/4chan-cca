@@ -9,6 +9,8 @@ import re
 
 URL_REGEX = r'[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
 POST_REF_REGEX = r'>>[\d]{8}'
+KWARGS = {'headers':{'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36'}}
+
 
 nlp = spacy.load('en_core_web_sm')
 
@@ -34,8 +36,6 @@ def remove_links(content):
 
     Returns: (str) content without links 
     '''
-    # stolen from https://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
-
     rv = re.sub(URL_REGEX, ' ', content)
     rv = re.sub(POST_REF_REGEX, '\n', content)
     
@@ -86,7 +86,7 @@ def scrape_thread(url):
     session = HTMLSession()
 
     #### Extract content and render
-    req = session.get(url)
+    req = session.get(url, **KWARGS)
     req.html.render()
     soup = bs(req.text, 'html.parser')
 
@@ -155,8 +155,15 @@ def get_posts_from_page(url):
       and poster for all threads on the page.
     '''
     session = HTMLSession()
-    req = session.get(url)
-    req.html.render()
+
+    try:
+        req = session.get(url, **KWARGS)
+        req.html.render()
+    except ConnectionResetError:
+        time.sleep(4)
+        req = session.get(url, **KWARGS)
+        req.html.render()
+
     soup = bs(req.text, 'html.parser')
 
     threads = [url + thread for thread in get_threads(soup)]
@@ -177,7 +184,7 @@ def get_all_current_posts(board):
     Returns: DataFrame of 4chan posts sorted by thread subject, with post id, 
       post contents, poster, and post time. 
     '''
-    reqs = [HTMLSession().get(f'https://boards.4chan.org/{board}/{i}')\
+    reqs = [HTMLSession().get(f'https://boards.4chan.org/{board}/{i}', **KWARGS)\
             for i in range(1, 11)]
     logging.info("Made reqs!")
     
