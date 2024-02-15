@@ -6,6 +6,7 @@ import pandas as pd
 import logging
 import spacy
 import re
+from time import sleep
 
 URL_REGEX = r'[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
 POST_REF_REGEX = r'>>[\d]{8}'
@@ -87,7 +88,7 @@ def scrape_thread(url):
 
     #### Extract content and render
     req = session.get(url, **KWARGS)
-    req.html.render()
+    req.html.render(timeout=20)
     soup = bs(req.text, 'html.parser')
 
     posts = [post for post in\
@@ -117,6 +118,8 @@ def scrape_thread(url):
         clean_contents.append(clean_content)
         refs.append(references)
         links.append(links_to)
+    
+    session.close()
 
     return DataFrame({'subject':[subject for i, _ in enumerate(post_content)],\
                       'id':post_id, \
@@ -158,11 +161,11 @@ def get_posts_from_page(url):
 
     try:
         req = session.get(url, **KWARGS)
-        req.html.render()
+        req.html.render(timeout=20)
     except ConnectionResetError:
         time.sleep(4)
         req = session.get(url, **KWARGS)
-        req.html.render()
+        req.html.render(timeout=20)
 
     soup = bs(req.text, 'html.parser')
 
@@ -191,7 +194,8 @@ def get_all_current_posts(board):
     soups = []
     for req in reqs:
         # might be necessary to make a copy 
-        req.html.render()
+        req.html.render(timeout=20)
+        sleep(.5)
         soups.append(bs(req.text, 'html.parser'))
     logging.info('Made soups!')
     
@@ -216,9 +220,9 @@ def get_all_current_posts(board):
 
 if __name__ == "__main__":
 
-    logging.basicConfig(level=logging.INFO, filename='logs.txt',
+    logging.basicConfig(level=logging.FATAL, filename='logs.txt',
                             format='%(asctime)-15s %(levelname)-8s %(message)s')
-
+    print('here')
     with open('constants.txt', 'r') as f:
         board = f.readline().strip()
         save_path = f.readline().strip()
