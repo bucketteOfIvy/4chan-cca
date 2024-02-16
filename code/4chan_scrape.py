@@ -163,7 +163,7 @@ def get_posts_from_page(url):
         req = session.get(url, **KWARGS)
         req.html.render(timeout=20)
     except ConnectionResetError:
-        time.sleep(4)
+        sleep(4)
         req = session.get(url, **KWARGS)
         req.html.render(timeout=20)
 
