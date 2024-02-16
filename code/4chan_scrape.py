@@ -220,7 +220,7 @@ def get_all_current_posts(board):
 
 if __name__ == "__main__":
 
-    logging.basicConfig(level=logging.FATAL, filename='logs.txt',
+    logging.basicConfig(level=logging.INFO, filename='logs.txt',
                             format='%(asctime)-15s %(levelname)-8s %(message)s')
     print('here')
     with open('constants.txt', 'r') as f:
