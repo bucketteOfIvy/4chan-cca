@@ -2,6 +2,7 @@ from pandas import DataFrame, concat
 from bs4 import BeautifulSoup as bs
 from requests_html import HTMLSession
 # from datetime import datetime
+import HelperChan
 import pandas as pd
 import logging
 import spacy
@@ -16,31 +17,6 @@ KWARGS = {'headers':{'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Ap
 nlp = spacy.load('en_core_web_sm')
 
 # TODO: test to see if this works on other boards
-
-def get_urls(content):
-    '''
-    Retrieve all URLS in a post.
-    '''
-    return re.findall(URL_REGEX, content)
-
-def get_references(content):
-    '''
-    Retrieve all post ids referenced by this post.
-    '''
-    return re.findall(POST_REF_REGEX, content)
-
-def remove_links(content):
-    '''
-    Cleans content, deleting all URLs and links.
-    
-    Inputs: (str) content
-
-    Returns: (str) content without links 
-    '''
-    rv = re.sub(URL_REGEX, ' ', content)
-    rv = re.sub(POST_REF_REGEX, '\n', content)
-    
-    return rv
 
 def get_thread_subject(soup):
     '''
@@ -105,10 +81,10 @@ def scrape_thread(url):
         num = post.find('a', title='Reply to this post').get_text()
         content = post.find('blockquote', class_='postMessage').get_text()
 
-        references = get_references(content)
-        links_to = get_urls(content)
+        references = HelperChan.get_references(content)
+        links_to = HelperChan.get_urls(content)
 
-        clean_content = remove_links(content)
+        clean_content = HelperChan.remove_links(content)
 
         post_content.append(content)
         date.append(re.search(r'[0-9]{2}/[0-9]{2}/[0-9]{2}', time_dirty)[0])
