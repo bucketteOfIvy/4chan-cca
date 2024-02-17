@@ -62,12 +62,13 @@ def content_with_back_reference(post, posts):
     
     # Find the referenced posts
     found_refs = []
+    content_col = posts.columns.tolist().index('content')
     for ref in references:
         matches = posts['id'] == int(ref.strip('>>'))     
         if sum(matches) == 1:
             # index of the content row
             # anything else returns a Series, for some reason
-            mtch = posts[matches].iloc[0, 6]
+            mtch = posts[matches].iloc[0, content_col]
             found_refs.append(mtch)
         elif sum(matches) == 0:
             warnings.warn(f'WARNING: {ref.strip(">>")} not found in posts DataFrame.')
@@ -77,7 +78,7 @@ def content_with_back_reference(post, posts):
 
     # Replace references
     for old, new in zip(references, found_refs):
-        post = re.sub(old, f"<ref>{repr(new)}</ref>", post)
+        post = re.sub(old, f"<ref>{repr(new)}</ref>\n", post)
 
     return post
 
