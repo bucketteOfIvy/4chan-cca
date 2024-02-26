@@ -11,7 +11,7 @@ python.exe 4chan_scrape.py
 
 git add logs.txt
 
-git add ../data/lgbt_week_2.csv
+git add ../data/lgbt_week_4.csv
 
 git commit -m "routine update"
 

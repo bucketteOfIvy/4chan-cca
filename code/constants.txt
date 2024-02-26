@@ -1,2 +1,2 @@
 /lgbt/
-../data/lgbt_week_3.csv
+../data/lgbt_week_4.csv
