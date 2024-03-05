@@ -6,6 +6,7 @@ import warnings
 import pandas as pd
 import regex as re
 import networkx as nx
+import ast
 
 ### Constants
 URL_REGEX = r'[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
@@ -84,10 +85,11 @@ def content_with_back_reference(post, posts):
 
 def standardize_date(date):
     '''
-    Standardize a date split by / to a %m/%d/%y format.
+    Standardize a date split by / to a %Y-%m-%d format.
     '''
     m, d, y = date.split('/')
-    return f"{m.rjust(2, '0')}/{d.rjust(2, '0')}/{y[-2:]}"
+    return f"20{y[-2:]}-{m.rjust(2, '0')}-{d.rjust(2, '0')}"
+    #return f"{m.rjust(2, '0')}/{d.rjust(2, '0')}/{y[-2:]}"
 
 
 def make_datetime(posts):
@@ -101,7 +103,7 @@ def make_datetime(posts):
     '''
     datetime = posts['date'].apply(standardize_date) + ' ' + posts['time']
     
-    datetime.apply(lambda x: pd.to_datetime(x, format='%m/%d/%y %H:%M:%S'))
+    datetime.apply(lambda x: pd.to_datetime(x, format='%Y-%m-%d %H:%M:%S'))
     return datetime    
 
 def label_heads(posts):
@@ -181,3 +183,25 @@ class NetworkChan:
         graphs = [self.__make_network_from_thread(thread) for thread in threads]
         
         return graphs
+
+#### Functions with niche-use cases
+
+def very_good_ast_literal_eval(strarr):
+    '''
+    Ast literal eval, but tailored towards ensuring that
+    the string representation of a list it reads in is *actually*
+    in the format of a list.
+
+    inputs: 
+      strarr (str): string representation of a list.
+    
+    Returns: list version of strarr 
+    '''
+    strarr = re.sub(r'\[ ', '[', strarr)
+    strarr = re.sub(r'\s{2,}', ' ', strarr)
+    strarr = re.sub(r'\s', ',', strarr)
+    try:
+        return ast.literal_eval(strarr)
+    except ValueError:
+        print('Yell at the maker of HelperChan to make strarr more robust.')
+        print(f'Show them this:\n{strarr}')
