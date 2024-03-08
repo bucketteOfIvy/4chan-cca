@@ -1,8 +1,7 @@
 ### Author: Ashlynn Wimer
 ### Date: 3/4/2024
 ### About: This python module contains helper functions for interacting with 
-###         the OpenAI API. It's currently small and poorly designed, but I
-###         plan to develop it further.
+###         the OpenAI API.
 
 def create_example_messages(train_posts, content_col='content', classification_col='classification', system_role=None):
     '''

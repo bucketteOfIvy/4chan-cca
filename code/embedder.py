@@ -1,11 +1,3 @@
-### Author: Ashlynn Wimer
-### Last Modified: 3/8/2024
-### About: This script was used to generate the actual doc2vec embeddings for 
-###        posts in my corpus on which the classifier models were trained.
-###        We do not retain the overall embedding space due to it's anticipated
-###        size [a prior embedding space constructed on just week 1 data was
-###        already 13 GB in size].
-
 import gensim.models.doc2vec as d2v
 import pandas as pd
 import ast
