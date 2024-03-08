@@ -12,7 +12,7 @@ The `code` file contains my code, while `data` contains my data. The most import
 
 * `Classifier.ipynb` is the script where my actual data classification occurs.
 
-* `4chan_scrape.py` is a webscraper that is called every 30 minutes from a laptop in my house. It is specifically called when Windows Task Scheduler executes `lgbt.bat`, and refers to `constants.txt` to see where it ought output to. Additionally, it logs it's activity in `logs.txt`. 
+* `4chan_scrape.py` is a webscraper that is called every 30 minutes from a laptop in my house. It is specifically called when Windows Task Scheduler executes `lgbt.bat`, and refers to `constants.txt` to see where it ought output to. Additionally, it logs it's activity in `logs.txt`. <b>With regards to grading, please disregard any commits to these files after the submission deadline</b>.
 
 * `SummaryAnalysis.ipnyb`, `WordCounting.ipynb`, and `TopicAnalysis.ipynb` are my analysis notebooks.
 
