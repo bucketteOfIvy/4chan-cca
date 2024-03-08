@@ -1,8 +1,8 @@
 ### Author: Ashlynn Wimer
 ### Date: 3/1/2024
-### About: This script generates a document embedding for *all*
-###        of the posts in my corpus, and then attaches the a doc
-###        vector to each image.
+### About: This script was initially intended to be teh full "embedding" script, 
+###        but I ended up splitting up the corpus cleaning and embedding steps
+###        so that errors were less time consuming.
 
 # I also need a very specific cleanup to occur, so we write that below.
 def cleaner_tokens(soiled_tokens):
