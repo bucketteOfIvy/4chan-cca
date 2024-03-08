@@ -1,3 +1,10 @@
+### Author: Ashlynn Wimer
+### Date: 3/4/2024
+### About: This script creates docvec embeddings of my posts, before saving the
+###        embedding information to a file on the side. 
+###        Notably, it does *not* save the actual embedding space, as that would
+###        have taken up too much storage to keep and too much RAM to load.
+
 import gensim.models.doc2vec as d2v
 import pandas as pd
 import ast
