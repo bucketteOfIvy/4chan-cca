@@ -1,3 +1,9 @@
+### Author: Ashlynn Wimer
+### Last Modified: 3/8/2024
+### About: This script is used to scrape 4chan, and is called about once every
+###        30 minutes from a local device.
+
+
 from pandas import DataFrame, concat 
 from bs4 import BeautifulSoup as bs
 from requests_html import HTMLSession
