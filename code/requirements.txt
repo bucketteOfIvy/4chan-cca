@@ -2,3 +2,17 @@ beautifulsoup4==4.12.3
 pandas==2.2.0
 requests_html==0.10.0
 spacy==3.7.2
+scikit-learn==1.3.2
+numpy==1.25.2
+matplotlib==3.8.2
+scipy==1.11.3
+nltk==3.8.1
+wordcloud==1.9.3
+lucem_illud==8.0.1
+gensim==4.3.2
+tqdm==4.66.1
+ksvd==0.0.3
+openai==1.2.0
+networkx==3.2.1
+regex==2023.12.25
+jsonlines==4.0.0
