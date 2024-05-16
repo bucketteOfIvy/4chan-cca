@@ -1,8 +1,8 @@
-## Introduction
+# Introduction
 
 People use social media to support their offline social transitions, raising the need to understand how social media platforms and their affordances enable such usage. Nonetheless, prior research has heavily focused on the usage of social network sites, such as Facebook, Tumblr, or Twitter, limiting the affordances explored to those prominent on social network sites. Towards understanding how different affordances influence transitioners ability to undergo social transitions online, we undertake a case study of how transgender people use 4chan's /lgbt/ board as a tool for social transition. We construct a Discourse Atom Topic Model from nearly 69,000 posts about trans people and ideas of transness on /lgbt/. Through exploration of the topics in the posts, we find evidence that psuedoanonymity -- or the ability to hide ones identity in physical space while constructing a digital persona -- may be a sufficient affordance for transition friendly social media, and discover co-usage of social network sites by to expand or sidestep the affordances offered by 4chan. Our lays the foundation for future studies attempting to understand the usage of social media to aid in transition outside of social network sites. 
 
-### Codebase
+## Codebase
 
 All code was ran in a Python 3.11 environment. The `code` file contains my code, while `data` contains much of my data. The most important files are:
 
